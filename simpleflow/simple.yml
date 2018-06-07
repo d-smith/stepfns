@@ -28,6 +28,8 @@ Resources:
 
   StatesExecutionRole:
     Type: AWS::IAM::Role
+    DependsOn:
+      - MyLambdaFunction
     Properties:
       AssumeRolePolicyDocument: 
         Version: '2012-10-17'
@@ -46,7 +48,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "lambda:InvokeFunction"
-                Resource: "*"
+                Resource: !GetAtt [ MyLambdaFunction, Arn ]
 
   HelloWorldStateMachine:
     Type: AWS::StepFunctions::StateMachine
