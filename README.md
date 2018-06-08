@@ -8,3 +8,6 @@ resource on the step function service policy.
 2. simplesls - the canonical hello world step function, implemented using
 the [serverless framework](https://serverless.com/) and a plugin, integrated
 into the serverless toolset and workflow.
+
+3. More steps - shows the use of a multistep process, including how
+to pass data between steps, and how to instantiate a downstream process.
