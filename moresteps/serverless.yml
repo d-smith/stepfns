@@ -1,0 +1,30 @@
+service: model-proc
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+
+functions:
+  stepA:
+    handler: manysteps.stepA
+
+stepFunctions:
+  stateMachines:
+    hellostepfunc1:
+      events:
+        - http:
+            path: start-sample-proc
+            method: post
+      definition:
+        Comment: "A process model"
+        StartAt: step-a
+        States:
+          step-a:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepA"
+            End: true
+
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
