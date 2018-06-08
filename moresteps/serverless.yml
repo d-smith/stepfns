@@ -7,6 +7,8 @@ provider:
 functions:
   stepA:
     handler: manysteps.stepA
+  stepB:
+    handler: manysteps.stepB
 
 stepFunctions:
   stateMachines:
@@ -22,7 +24,12 @@ stepFunctions:
           step-a:
             Type: Task
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepA"
+            Next: step-b
+          step-b:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepB"
             End: true
+
 
 
 plugins:
