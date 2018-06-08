@@ -1,4 +1,5 @@
-
+const AWS = require('aws-sdk');
+const stepFunctions = new AWS.StepFunctions();
 
 const getFailureProbFromEnvrionment = (step) => {
     var FailureProb;
@@ -86,6 +87,7 @@ const cFails = (callback, event) => {
 
 module.exports.stepA = (event, context, callback) => {
     console.log(`input: ${JSON.stringify(event)}`);
+    console.log(`context: ${JSON.stringify(context)}`);
 
     //Flip a coin to succeed or fail.
     if(Math.random() > stepAFailureProb) {
@@ -145,6 +147,39 @@ module.exports.stepE = (event, context, callback) => {
             part2: p2Results
         }
         callback(null,event);
+    } catch(theError) {
+        function StepEError(message) {
+            this.name = 'Step E Error';
+            this.message = message;
+        };
+        StepEError.prototype = new Error();
+    
+        const error = new StepEError(theError.message);
+    
+        callback(error);
+    }
+};
+
+const kickOffDownstream = async (downstreamInput) => {
+    var params = {
+        stateMachineArn: process.env.DOWNSTREAM_ARN,
+        input: downstreamInput
+    }
+
+    let result = await stepFunctions.startExecution(params).promise();
+    return result;
+}
+
+module.exports.stepF = async (event, context, callback) => {
+    try {
+        console.log(`context: ${JSON.stringify(context)}`);
+        console.log(`instantiate state machine ${process.env.DOWNSTREAM_ARN}`);
+        let result = await kickOffDownstream(JSON.stringify(event));
+        console.log(result);
+        event['step-f-output'] = {
+            downstreamExecutionArn: result['executionArn']
+        }
+        callback(null, event);
     } catch(theError) {
         function StepEError(message) {
             this.name = 'Step E Error';

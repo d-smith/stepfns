@@ -8,6 +8,13 @@ provider:
     STEP_C_FAILURE_PROB: 0
     STEP_E1_FAILURE_PROB: 0
     STEP_E2_FAILURE_PROB: 0
+    DOWNSTREAM_ARN: ${cf:downstream-${self:provider.stage}.DownstreamDash${self:provider.stage}Arn}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "states:StartExecution"
+      Resource:
+        - "*"
 
 functions:
   stepA:
@@ -20,10 +27,12 @@ functions:
     handler: manysteps.stepD
   stepE:
     handler: manysteps.stepE
-
+  stepF:
+    handler: manysteps.stepF
+      
 stepFunctions:
   stateMachines:
-    hellostepfunc1:
+    MultiStepProcess:
       events:
         - http:
             path: start-sample-proc
@@ -51,7 +60,12 @@ stepFunctions:
           step-e:
             Type: Task
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepE"
+            Next: step-f
+          step-f:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepF"
             End: true
+
 
 
 
