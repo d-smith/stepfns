@@ -10,6 +10,12 @@ const getFailureProbFromEnvrionment = (step) => {
         case 'c':
             failureProb = parseFloat(process.env.STEP_C_FAILURE_PROB);
             break;
+        case 'e1':
+            failureProb = parseFloat(process.env.STEP_E1_FAILURE_PROB);
+            break;
+        case 'e2':
+            failureProb = parseFloat(process.env.STEP_E2_FAILURE_PROB);
+            break;
         default:
             failureProb = 0;
     }
@@ -23,6 +29,9 @@ const getFailureProbFromEnvrionment = (step) => {
 
 const stepAFailureProb = getFailureProbFromEnvrionment('a');
 const stepCFailureProb = getFailureProbFromEnvrionment('c');
+const stepE1FailureProb = getFailureProbFromEnvrionment('e1');
+const stepE2FailureProb = getFailureProbFromEnvrionment('e2');
+
 
 const aSucceeds = (callback, event) => {
     let result = {
@@ -86,6 +95,14 @@ module.exports.stepA = (event, context, callback) => {
     } 
 };
 
+module.exports.stepB = (event, context, callback) => {
+    console.log(`input: ${JSON.stringify(event)}`);
+    storeAOutput(event['step-a-output']);    
+
+    //Return the event as output to make the data available downstream
+    callback(null, event);
+};
+
 module.exports.stepC = (event, context, callback) => {
     console.log(`input: ${JSON.stringify(event)}`);
 
@@ -97,10 +114,49 @@ module.exports.stepC = (event, context, callback) => {
     }  
 };
 
-module.exports.stepB = (event, context, callback) => {
-    console.log(`input: ${JSON.stringify(event)}`);
-    storeAOutput(event['step-a-output']);    
+module.exports.stepD = (event, context, callback) => {
+    event['step-d-output'] = {
+      computationResult: 123456  
+    };
 
-    //Return the event as output to make the data available downstream
     callback(null, event);
 };
+
+const doStepEPart1 = () => {
+    if(Math.random() < stepE1FailureProb) {
+        throw new Error("part 1 failed");
+    }
+    return "part 1 output";
+}
+
+const doStepEPart2 = () => {
+    if(Math.random() < stepE1FailureProb) {
+        throw new Error("part 2 failed");
+    }
+    return "part 2 output";
+}
+
+module.exports.stepE = (event, context, callback) => {
+    try {
+        p1Results = doStepEPart1();
+        p2Results = doStepEPart2();
+        event['step-e-output'] = {
+            part1: p1Results,
+            part2: p2Results
+        }
+        callback(null,event);
+    } catch(theError) {
+        function StepEError(message) {
+            this.name = 'Step E Error';
+            this.message = message;
+        };
+        StepEError.prototype = new Error();
+    
+        const error = new StepEError(theError.message);
+    
+        callback(error);
+    }
+};
+
+
+

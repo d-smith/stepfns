@@ -6,6 +6,8 @@ provider:
   environment:
     STEP_A_FAILURE_PROB: 0
     STEP_C_FAILURE_PROB: 0
+    STEP_E1_FAILURE_PROB: 0
+    STEP_E2_FAILURE_PROB: 0
 
 functions:
   stepA:
@@ -14,6 +16,10 @@ functions:
     handler: manysteps.stepB
   stepC:
     handler: manysteps.stepC
+  stepD:
+    handler: manysteps.stepD
+  stepE:
+    handler: manysteps.stepE
 
 stepFunctions:
   stateMachines:
@@ -37,6 +43,14 @@ stepFunctions:
           step-c:
             Type: Task
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepC"
+            Next: step-d
+          step-d:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepD"
+            Next: step-e
+          step-e:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepE"
             End: true
 
 
