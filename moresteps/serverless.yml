@@ -1,0 +1,74 @@
+service: model-proc
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  environment:
+    STEP_A_FAILURE_PROB: 0
+    STEP_C_FAILURE_PROB: 0
+    STEP_E1_FAILURE_PROB: 0
+    STEP_E2_FAILURE_PROB: 0
+    DOWNSTREAM_ARN: ${cf:downstream-${self:provider.stage}.DownstreamDash${self:provider.stage}Arn}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "states:StartExecution"
+      Resource:
+        - "*"
+
+functions:
+  stepA:
+    handler: manysteps.stepA
+  stepB:
+    handler: manysteps.stepB
+  stepC:
+    handler: manysteps.stepC
+  stepD:
+    handler: manysteps.stepD
+  stepE:
+    handler: manysteps.stepE
+  stepF:
+    handler: manysteps.stepF
+      
+stepFunctions:
+  stateMachines:
+    MultiStepProcess:
+      events:
+        - http:
+            path: start-sample-proc
+            method: post
+      definition:
+        Comment: "A process model"
+        StartAt: step-a
+        States:
+          step-a:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepA"
+            Next: step-b
+          step-b:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepB"
+            Next: step-c
+          step-c:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepC"
+            Next: step-d
+          step-d:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepD"
+            Next: step-e
+          step-e:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepE"
+            Next: step-f
+          step-f:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepF"
+            End: true
+
+
+
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
