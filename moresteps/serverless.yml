@@ -3,12 +3,17 @@ service: model-proc
 provider:
   name: aws
   runtime: nodejs8.10
+  environment:
+    STEP_A_FAILURE_PROB: 0
+    STEP_C_FAILURE_PROB: 0
 
 functions:
   stepA:
     handler: manysteps.stepA
   stepB:
     handler: manysteps.stepB
+  stepC:
+    handler: manysteps.stepC
 
 stepFunctions:
   stateMachines:
@@ -28,6 +33,10 @@ stepFunctions:
           step-b:
             Type: Task
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepB"
+            Next: step-c
+          step-c:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepC"
             End: true
 
 

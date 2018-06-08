@@ -1,4 +1,29 @@
 
+
+const getFailureProbFromEnvrionment = (step) => {
+    var FailureProb;
+
+    switch(step) {
+        case 'a':
+            failureProb = parseFloat(process.env.STEP_A_FAILURE_PROB);
+            break;
+        case 'c':
+            failureProb = parseFloat(process.env.STEP_C_FAILURE_PROB);
+            break;
+        default:
+            failureProb = 0;
+    }
+
+    if(isNaN(failureProb) || failureProb < 0 || failureProb > 1) {
+        failureProb = 0;
+    }
+
+    return failureProb;
+}
+
+const stepAFailureProb = getFailureProbFromEnvrionment('a');
+const stepCFailureProb = getFailureProbFromEnvrionment('c');
+
 const aSucceeds = (callback, event) => {
     let result = {
         status: 'ok',
@@ -28,17 +53,48 @@ const aFails = (callback, event) => {
     callback(error);
 };
 
+const cSucceeds = (callback, event) => {
+    let result = {
+        status: 'ok',
+        details: 'nothing to share',
+        stepCOutput1: 'this is step c output'
+    };
+
+    event['step-c-output'] = result;
+    callback(null, event);
+};
+
+const cFails = (callback, event) => {
+    function StepCError(message) {
+        this.name = 'StepCError';
+        this.message = message;
+    };
+    StepCError.prototype = new Error();
+
+    const error = new StepCError("step c failed big-time");
+    callback(error);
+};
+
 module.exports.stepA = (event, context, callback) => {
     console.log(`input: ${JSON.stringify(event)}`);
 
     //Flip a coin to succeed or fail.
-    if(Math.random() > 0.15) {
+    if(Math.random() > stepAFailureProb) {
         aSucceeds(callback, event);
     } else {
         aFails(callback, event);
-    }
+    } 
+};
 
-    
+module.exports.stepC = (event, context, callback) => {
+    console.log(`input: ${JSON.stringify(event)}`);
+
+    //Flip a coin to succeed or fail.
+    if(Math.random() > stepCFailureProb) {
+        cSucceeds(callback, event);
+    } else {
+        cFails(callback, event);
+    }  
 };
 
 module.exports.stepB = (event, context, callback) => {
