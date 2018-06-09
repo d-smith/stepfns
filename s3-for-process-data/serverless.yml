@@ -1,0 +1,58 @@
+service: s3processdata
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  environment:
+    BUCKET_NAME: ${self:custom.bucketName}
+
+custom:
+  bucketName: ds97068processinput
+
+functions:
+  startProc:
+    handler: start.startProcess
+    role: processStartRole
+    events:
+      - http: POST start-process
+
+resources:
+  Resources:
+    ProcessInputBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.bucketName}
+        AccessControl: BucketOwnerFullControl
+    
+    processStartRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+              - edgelambda.amazonaws.com
+            Action:
+            - sts:AssumeRole
+        Path: "/"
+        Policies:
+        - PolicyName: logs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - logs:*
+              Resource: arn:aws:logs:*:*:*
+        - PolicyName: s3
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - s3:PutObject
+              Resource: 
+                Fn::GetAtt: [ ProcessInputBucket, Arn ]
