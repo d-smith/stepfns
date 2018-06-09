@@ -54,5 +54,12 @@ resources:
             - Effect: Allow
               Action:
               - s3:PutObject
-              Resource: 
-                Fn::GetAtt: [ ProcessInputBucket, Arn ]
+              Resource:
+                - 'Fn::Join':
+                  - '/'
+                  -
+                    - Fn::GetAtt: [ ProcessInputBucket, Arn ]
+                    - '*'
+
+plugins:
+  - serverless-step-functions

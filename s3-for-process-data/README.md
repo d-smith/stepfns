@@ -1,0 +1,1 @@
+serverless plugin install --name serverless-step-functions
