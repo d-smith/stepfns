@@ -71,7 +71,15 @@ resources:
               Action:
               - "states:StartExecution"
               Resource:
-                - "*"
+                - 'Fn::Join':
+                    - ''
+                    -
+                      - "arn:aws:states:"
+                      - Ref: "AWS::Region"
+                      - ":"
+                      - Ref: "AWS::AccountId"
+                      - ":stateMachine:ProcessA-"
+                      - ${self:provider.stage}
         - PolicyName: s3
           PolicyDocument:
             Version: '2012-10-17'
