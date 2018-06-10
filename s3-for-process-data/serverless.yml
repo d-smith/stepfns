@@ -5,6 +5,7 @@ provider:
   runtime: nodejs8.10
   environment:
     BUCKET_NAME: ${self:custom.bucketName}
+    STEP_FN_ARN: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:ProcessA-${self:provider.stage}"
 
 custom:
   bucketName: ds97068processinput
@@ -15,6 +16,21 @@ functions:
     role: processStartRole
     events:
       - http: POST start-process
+  stepA:
+    handler: aprocess.stepA
+
+stepFunctions:
+  stateMachines:
+    ProcessA:
+      name: ProcessA-${opt:stage}
+      definition:
+        Comment: "A process model"
+        StartAt: step-a
+        States:
+          step-a:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepA"
+            End: true
 
 resources:
   Resources:
@@ -47,6 +63,15 @@ resources:
               Action:
               - logs:*
               Resource: arn:aws:logs:*:*:*
+        - PolicyName: stepsfns
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - "states:StartExecution"
+              Resource:
+                - "*"
         - PolicyName: s3
           PolicyDocument:
             Version: '2012-10-17'
@@ -63,3 +88,4 @@ resources:
 
 plugins:
   - serverless-step-functions
+  - serverless-pseudo-parameters
