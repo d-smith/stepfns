@@ -1,12 +1,7 @@
 const AWS = require('aws-sdk');
 const S3 = new AWS.S3();
 
-module.exports.stepA = async (event, context, callback) => {
-    console.log(`event: ${JSON.stringify(event)})`);
-
-    let key = event['processData'];
-    console.log(`process data via key ${key}`);
-
+const readInputDataString = async (key) => {
     let params = {
         Bucket: process.env.BUCKET_NAME,
         Key: key
@@ -15,7 +10,28 @@ module.exports.stepA = async (event, context, callback) => {
     let s3response = await S3.getObject(params).promise();
     console.log(s3response);
 
-    let input = s3response['Body'].toString();
+    return s3response['Body'].toString();
+}
+
+const writeBodyObj = async(key, body) => {
+    let putParams = {
+        Body: JSON.stringify(body),
+        Key: key,
+        ServerSideEncryption: "AES256",
+        Bucket: process.env.BUCKET_NAME
+    };
+
+    s3response = await S3.putObject(putParams).promise();
+    console.log(s3response);
+}
+
+module.exports.stepA = async (event, context, callback) => {
+    console.log(`event: ${JSON.stringify(event)})`);
+
+    let key = event['processData'];
+    console.log(`process data via key ${key}`);
+
+    let input = await readInputDataString(key);
     console.log(`input: ${input}`);
     let processData = JSON.parse(input);
     
@@ -29,17 +45,35 @@ module.exports.stepA = async (event, context, callback) => {
     };
 
     processData['step-a-output'] = result;
+    writeBodyObj(key, processData);
 
-    let putParams = {
-        Body: JSON.stringify(processData),
-        Key: key,
-        ServerSideEncryption: "AES256",
-        Bucket: process.env.BUCKET_NAME
+    //Make process data available to the next downstream process
+    callback(null, event);
+}
+
+module.exports.stepB = async (event, context, callback) => {
+    console.log(`event: ${JSON.stringify(event)})`);
+
+    let key = event['processData'];
+    console.log(`process data via key ${key}`);
+
+    //
+    // TODO/WARNING - due to the s3 consitency model, we need to test to make sure
+    // we are reading the output from the previous step before we proceed! Ignoring
+    // this for now... DO NOT REUSE THIS YET!
+    //
+    let input = await readInputDataString(key);
+    console.log(`input: ${input}`);
+    let processData = JSON.parse(input);
+    
+    //Write output to object
+    let result = {
+        property1: 'p1',
+        property2: 'p2',
     };
-    console.log(`putParams: ${JSON.stringify(putParams)}`);
 
-    s3response = await S3.putObject(putParams).promise();
-    console.log(s3response);
+    processData['step-b-output'] = result;
+    writeBodyObj(key, processData);
 
     //Make process data available to the next downstream process
     callback(null, event);

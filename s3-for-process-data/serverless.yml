@@ -20,6 +20,10 @@ functions:
     handler: aprocess.stepA
     role:
       stepRole
+  stepB:
+    handler: aprocess.stepB
+    role:
+      stepRole
 
 stepFunctions:
   stateMachines:
@@ -32,7 +36,12 @@ stepFunctions:
           step-a:
             Type: Task
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepA"
+            Next: step-b
+          step-b:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepB"
             End: true
+
 
 resources:
   Resources:
