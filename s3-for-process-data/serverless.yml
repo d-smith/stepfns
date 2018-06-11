@@ -46,6 +46,7 @@ stepFunctions:
   stateMachines:
     ProcessA:
       name: ProcessA-${opt:stage}
+      role: "arn:aws:iam::#{AWS::AccountId}:role/stateMachineRole-${opt:stage}"
       definition:
         Comment: "A process model"
         StartAt: step-a
@@ -176,6 +177,43 @@ resources:
                   -
                     - Fn::GetAtt: [ ProcessInputBucket, Arn ]
                     - '*'
+    stateMachineRole:
+      Type: AWS::IAM::Role
+#      DependsOn:
+#        - MyLambdaFunction
+      Properties:
+        RoleName: 
+          Fn::Join: [ '-', ['stateMachineRole',  '${self:provider.stage}' ]]
+        AssumeRolePolicyDocument: 
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - 'Fn::Join':
+                    - ''
+                    -
+                      - 'states.'
+                      - Ref: 'AWS::Region'
+                      - '.amazonaws.com'
+              Action: "sts:AssumeRole"
+        Path: "/"
+        Policies:
+          - PolicyName: StatesExecutionPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "lambda:InvokeFunction"
+                  Resource: 
+                    - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepA"
+                    - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepB"
+                    - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepC"
+                    - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepD"
+                    - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepE"
+                    - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepF"
+                  
 plugins:
   - serverless-step-functions
   - serverless-pseudo-parameters
