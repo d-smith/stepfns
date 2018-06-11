@@ -1,0 +1,88 @@
+service: lo
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  environment:
+    STEPA_NAME: ${self:custom.stepAName}
+
+custom:
+  stepAName: ${self:service}-${self:provider.stage}-stepA
+
+
+functions:
+  startProc:
+    handler: lo.startProcess
+    role: processStartRole
+    events:
+      - http: POST start-process
+  stepA:
+    handler: lo.stepA
+    name: ${self:service}-${self:provider.stage}-stepA
+    role:
+      stepRole
+
+
+resources:
+  Resources:
+    processStartRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+              - edgelambda.amazonaws.com
+            Action:
+            - sts:AssumeRole
+        Path: "/"
+        Policies:
+        - PolicyName: logs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - logs:*
+              Resource: arn:aws:logs:*:*:*
+        - PolicyName: lambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+                - lambda:InvokeAsync
+              Resource:
+                - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepA"
+
+    stepRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+              - edgelambda.amazonaws.com
+            Action:
+            - sts:AssumeRole
+        Path: "/"
+        Policies:
+        - PolicyName: logs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - logs:*
+              Resource: arn:aws:logs:*:*:*
+
+
+plugins:
+  - serverless-pseudo-parameters
