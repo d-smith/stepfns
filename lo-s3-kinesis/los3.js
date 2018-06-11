@@ -1,10 +1,28 @@
 const AWS = require('aws-sdk');
 const S3 = new AWS.S3();
 const Lambda =new AWS.Lambda();
+const Kinesis = new AWS.Kinesis();
 
 const FlakeIdGen = require('flake-idgen')
     , intformat = require('biguint-format')
     , generator = new FlakeIdGen;
+
+const writeToStream =  (txnId, eventObj) => {
+    console.log('write to stream');
+    eventObj['txnId'] = txnId;
+
+    let params = {
+        Data: JSON.stringify(eventObj),
+        PartitionKey: txnId,
+        StreamName: process.env.STREAM_NAME 
+    };
+
+    Kinesis.putRecord(params, function(err,data) {
+        //Your error handling may differ...
+        if (err) console.log(err, err.stack);
+    });
+
+}
 
 const callStep = async (functionName, txnId) => {
     let payload = {
@@ -53,13 +71,13 @@ module.exports.startProcess = async (event, context, callback) => {
     let e = await callStep(process.env.STEPE_NAME, txnId);
     let f = await callStep(process.env.STEPF_NAME, txnId);
 
-    processOut = {}
-    processOut['step-a'] = a;
-    processOut['step-b'] = b;
-    processOut['step-c'] = c;
-    processOut['step-d'] = d;
-    processOut['step-e'] = e;
-    processOut['step-f'] = f;
+    let processOut = {}
+    processOut['step-a'] = JSON.parse(a['Payload']);
+    processOut['step-b'] = JSON.parse(b['Payload']);
+    processOut['step-c'] = JSON.parse(c['Payload']);
+    processOut['step-d'] = JSON.parse(d['Payload']);
+    processOut['step-e'] = JSON.parse(e['Payload']);
+    processOut['step-f'] = JSON.parse(f['Payload']);
 
 
     callback(null, {statusCode: 200, body: JSON.stringify(processOut)});
@@ -74,6 +92,7 @@ module.exports.stepA = async (event, context, callback) => {
         stepAOutput3: 123
     };
 
+    writeToStream(event['txnId'], result);
     callback(null, result);
 }
 
@@ -83,6 +102,8 @@ module.exports.stepB = async (event, context, callback) => {
         property2: 'p2',
     };
 
+    writeToStream(event['txnId'], result);
+    callback(null, result);
 }
 
 module.exports.stepC = async (event, context, callback) => {
@@ -90,17 +111,24 @@ module.exports.stepC = async (event, context, callback) => {
         cProperty: 'i like c'
     };
 
+    writeToStream(event['txnId'], result);
     callback(null, result);
 }
     
 module.exports.stepD = async (event, context, callback) => {
-    callback(null, {d: 'd output'});
+    let result =  {d: 'd output'};
+    writeToStream(event['txnId'], result);
+    callback(null, result);
 }
 
 module.exports.stepE = async (event, context, callback) => {
-    callback(null, {e: 'e output'});
+    let result = {e: 'e output'};
+    writeToStream(event['txnId'], result);
+    callback(null, result);
 }
 
 module.exports.stepF = async (event, context, callback) => {
-    callback(null, {f: 'f output'});
+    let result =  {f: 'f output'};
+    writeToStream(event['txnId'], result);
+    callback(null, result);
 }

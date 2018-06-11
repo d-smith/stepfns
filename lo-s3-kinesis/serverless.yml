@@ -11,6 +11,7 @@ provider:
     STEPE_NAME: ${self:custom.stepEName}
     STEPF_NAME: ${self:custom.stepFName}
     BUCKET_NAME: ${self:custom.bucketName}
+    STREAM_NAME: ${self:custom.streamName}
 
 custom:
   stepAName: ${self:service}-${self:provider.stage}-stepA
@@ -20,6 +21,7 @@ custom:
   stepEName: ${self:service}-${self:provider.stage}-stepE
   stepFName: ${self:service}-${self:provider.stage}-stepF
   bucketName: ds97068los3
+  streamName: ${self:service}-${self:provider.stage}-stream
 
 
 functions:
@@ -67,6 +69,12 @@ resources:
       Properties:
         BucketName: ${self:custom.bucketName}
         AccessControl: BucketOwnerFullControl
+
+    LoStream:
+      Type: AWS::Kinesis::Stream
+      Properties:
+        Name: ${self:custom.streamName}
+        ShardCount: 1
 
     processStartRole:
       Type: AWS::IAM::Role
@@ -143,6 +151,17 @@ resources:
               Action:
               - logs:*
               Resource: arn:aws:logs:*:*:*
+        - PolicyName: kinesis
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - kinesis:DescribeStream
+              - kinesis:PutRecord
+              - kinesis:PutRecords
+              Resource:
+                - Fn::GetAtt: [ LoStream, Arn ]
 
 
 plugins:
