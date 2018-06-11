@@ -17,3 +17,5 @@ and for processes that need to protect data at rest, data can be stored in s3 bu
 that can be configured to encrypt data at rest.
 
 5. lambda-orchestration - Entry lambda via POST, which calls other lambas to do the work. Allows comparison with step functions in terms of overhead.
+
+6. lo-s3-kinesis - All lambda, make process input durable in s3 at start, write results for each step to an event stream.
