@@ -5,9 +5,19 @@ provider:
   runtime: nodejs8.10
   environment:
     STEPA_NAME: ${self:custom.stepAName}
+    STEPB_NAME: ${self:custom.stepBName}
+    STEPC_NAME: ${self:custom.stepCName}
+    STEPD_NAME: ${self:custom.stepDName}
+    STEPE_NAME: ${self:custom.stepEName}
+    STEPF_NAME: ${self:custom.stepFName}
 
 custom:
   stepAName: ${self:service}-${self:provider.stage}-stepA
+  stepBName: ${self:service}-${self:provider.stage}-stepB
+  stepCName: ${self:service}-${self:provider.stage}-stepC
+  stepDName: ${self:service}-${self:provider.stage}-stepD
+  stepEName: ${self:service}-${self:provider.stage}-stepE
+  stepFName: ${self:service}-${self:provider.stage}-stepF
 
 
 functions:
@@ -19,6 +29,31 @@ functions:
   stepA:
     handler: lo.stepA
     name: ${self:service}-${self:provider.stage}-stepA
+    role:
+      stepRole
+  stepB:
+    handler: lo.stepB
+    name: ${self:service}-${self:provider.stage}-stepB
+    role:
+      stepRole
+  stepC:
+    handler: lo.stepC
+    name: ${self:service}-${self:provider.stage}-stepC
+    role:
+      stepRole
+  stepD:
+    handler: lo.stepD
+    name: ${self:service}-${self:provider.stage}-stepD
+    role:
+      stepRole
+  stepE:
+    handler: lo.stepE
+    name: ${self:service}-${self:provider.stage}-stepE
+    role:
+      stepRole
+  stepF:
+    handler: lo.stepF
+    name: ${self:service}-${self:provider.stage}-stepF
     role:
       stepRole
 
@@ -58,6 +93,11 @@ resources:
                 - lambda:InvokeAsync
               Resource:
                 - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepA"
+                - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepB"
+                - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepC"
+                - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepD"
+                - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepE"
+                - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-stepF"
 
     stepRole:
       Type: AWS::IAM::Role
