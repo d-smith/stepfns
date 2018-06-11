@@ -1,0 +1,15 @@
+{
+  "name": "stream-reader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "reader.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.255.1",
+    "proxy-agent": "^3.0.0"
+  }
+}
