@@ -9,5 +9,9 @@ resource on the step function service policy.
 the [serverless framework](https://serverless.com/) and a plugin, integrated
 into the serverless toolset and workflow.
 
-3. More steps - shows the use of a multistep process, including how
+3. moresteps - shows the use of a multistep process, including how
 to pass data between steps, and how to instantiate a downstream process.
+
+4. s3-for-process-data - for processes that exceed the data limits for step functions,
+and for processes that need to protect data at rest, data can be stored in s3 buckets
+that can be configured to encrypt data at rest.
