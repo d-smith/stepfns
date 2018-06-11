@@ -23,18 +23,33 @@ const writeBodyObj = async(key, body) => {
 
     s3response = await S3.putObject(putParams).promise();
     console.log(s3response);
+    return s3response;
 }
 
-module.exports.stepA = async (event, context, callback) => {
+const doStep = async (outputKey, result, event, context, callback) => {
+    console.log(`doStep for ${outputKey}`);
     console.log(`event: ${JSON.stringify(event)})`);
 
     let key = event['processData'];
     console.log(`process data via key ${key}`);
 
+    //
+    // TODO/WARNING - due to the s3 consistency model, we need to test to make sure
+    // we are reading the output from the previous step before we proceed! Ignoring
+    // this for now... DO NOT REUSE THIS YET!
+    //
     let input = await readInputDataString(key);
     console.log(`input: ${input}`);
     let processData = JSON.parse(input);
     
+    processData[outputKey] = result;
+    await writeBodyObj(key, processData);
+
+    //Make process data available to the next downstream process
+    callback(null, event);
+}
+
+module.exports.stepA = async (event, context, callback) => {
     //Write output to object
     let result = {
         status: 'ok',
@@ -44,27 +59,11 @@ module.exports.stepA = async (event, context, callback) => {
         stepAOutput3: 123
     };
 
-    processData['step-a-output'] = result;
-    writeBodyObj(key, processData);
-
-    //Make process data available to the next downstream process
-    callback(null, event);
+    await doStep('step-a-output', result, event, context, callback);
 }
 
 module.exports.stepB = async (event, context, callback) => {
-    console.log(`event: ${JSON.stringify(event)})`);
-
-    let key = event['processData'];
-    console.log(`process data via key ${key}`);
-
-    //
-    // TODO/WARNING - due to the s3 consitency model, we need to test to make sure
-    // we are reading the output from the previous step before we proceed! Ignoring
-    // this for now... DO NOT REUSE THIS YET!
-    //
-    let input = await readInputDataString(key);
-    console.log(`input: ${input}`);
-    let processData = JSON.parse(input);
+ 
     
     //Write output to object
     let result = {
@@ -72,9 +71,25 @@ module.exports.stepB = async (event, context, callback) => {
         property2: 'p2',
     };
 
-    processData['step-b-output'] = result;
-    writeBodyObj(key, processData);
+    await doStep('step-b-output', result, event, context, callback);
+ 
+}
 
-    //Make process data available to the next downstream process
-    callback(null, event);
+module.exports.stepC = async (event, context, callback) => {
+    console.log('step C invoked');
+    let result = {
+        cProperty: 'i like c'
+    };
+
+    await doStep('step-c-output',result, event, context, callback);
+}
+
+module.exports.stepD = async (event, context, callback) => {
+    await doStep('step-d-output',{d: 'd output'}, event, context, callback);
+}
+module.exports.stepE = async (event, context, callback) => {
+    await doStep('step-e-output',{e: 'e output'}, event, context, callback);
+}
+module.exports.stepF = async (event, context, callback) => {
+    await doStep('step-f-output',{f: 'f output'}, event, context, callback);
 }

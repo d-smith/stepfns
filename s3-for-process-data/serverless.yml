@@ -24,6 +24,23 @@ functions:
     handler: aprocess.stepB
     role:
       stepRole
+  stepC:
+    handler: aprocess.stepC
+    role:
+      stepRole
+  stepD:
+    handler: aprocess.stepD
+    role:
+      stepRole
+  stepE:
+    handler: aprocess.stepE
+    role:
+      stepRole
+  stepF:
+    handler: aprocess.stepF
+    role:
+      stepRole
+
 
 stepFunctions:
   stateMachines:
@@ -40,6 +57,22 @@ stepFunctions:
           step-b:
             Type: Task
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepB"
+            Next: step-c
+          step-c:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepC"
+            Next: step-d
+          step-d:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepD"
+            Next: step-e
+          step-e:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepE"
+            Next: step-f
+          step-f:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-stepF"
             End: true
 
 
