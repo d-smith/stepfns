@@ -24,13 +24,13 @@ module.exports.startProcess = async (event, context, callback) => {
     let e = await callStep(process.env.STEPE_NAME);
     let f = await callStep(process.env.STEPF_NAME);
 
-    processOut = {}
-    processOut['step-a'] = a;
-    processOut['step-b'] = b;
-    processOut['step-c'] = c;
-    processOut['step-d'] = d;
-    processOut['step-e'] = e;
-    processOut['step-f'] = f;
+    let processOut = {}
+    processOut['step-a'] = JSON.parse(a['Payload']);
+    processOut['step-b'] = JSON.parse(b['Payload']);
+    processOut['step-c'] = JSON.parse(c['Payload']);
+    processOut['step-d'] = JSON.parse(d['Payload']);
+    processOut['step-e'] = JSON.parse(e['Payload']);
+    processOut['step-f'] = JSON.parse(f['Payload']);
 
 
     callback(null, {statusCode: 200, body: JSON.stringify(processOut)});
