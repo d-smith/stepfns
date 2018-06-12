@@ -2,6 +2,8 @@
 let region = process.env.REGION || 'us-east-1';
 let streamName = process.env.STREAM_NAME || "los3-dev-stream";
 
+const READ_SIZE = 25;
+
 console.log(`stream name is ${streamName}`);
 
 var AWS = require('aws-sdk');
@@ -35,7 +37,7 @@ const getRecords = async (shardItor, limit) => {
     //Do not call get records more than once a second - we'll be conservative
     //and go every 10 seconds
     setTimeout(() => {
-        getRecords(nextItor, 5);
+        getRecords(nextItor, READ_SIZE);
     }, 10000);
 
 }
@@ -49,7 +51,7 @@ const getIterator = async (shard) => {
 
     let itor = await kinesis.getShardIterator(params).promise();
 
-    getRecords(itor['ShardIterator'], 5);
+    getRecords(itor['ShardIterator'], READ_SIZE);
 }
 
 const getShards = async () => {
