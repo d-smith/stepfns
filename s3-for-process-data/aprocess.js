@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const S3 = new AWS.S3();
+const stepFunctions = new AWS.StepFunctions();
 
 const readInputDataString = async (key) => {
     let params = {
@@ -90,6 +91,38 @@ module.exports.stepD = async (event, context, callback) => {
 module.exports.stepE = async (event, context, callback) => {
     await doStep('step-e-output',{e: 'e output'}, event, context, callback);
 }
+
+const kickOffDownstream = async (downstreamInput) => {
+    var params = {
+        stateMachineArn: process.env.DOWNSTREAM_ARN,
+        input: downstreamInput
+    }
+
+    let result = await stepFunctions.startExecution(params).promise();
+    return result;
+}
+
 module.exports.stepF = async (event, context, callback) => {
-    await doStep('step-f-output',{f: 'f output'}, event, context, callback);
+    console.log(`event: ${JSON.stringify(event)})`);
+
+    let key = event['processData'];
+    console.log(`process data via key ${key}`);
+
+    //
+    // TODO/WARNING - due to the s3 consistency model, we need to test to make sure
+    // we are reading the output from the previous step before we proceed! Ignoring
+    // this for now... DO NOT REUSE THIS YET!
+    //
+    let input = await readInputDataString(key);
+    console.log(`input: ${input}`);
+    let processData = JSON.parse(input);
+
+    let result = await kickOffDownstream(JSON.stringify(event));
+    console.log(result);
+    processData['step-f-output'] = {
+        downstreamExecutionArn: result['executionArn']
+    }
+    await writeBodyObj(key, processData);
+
+    callback(null, event);
 }

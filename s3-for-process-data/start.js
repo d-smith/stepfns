@@ -25,9 +25,14 @@ module.exports.startProcess = async (event, context, callback) => {
 
     let txnId = intformat(generator.next(), 'hex',{prefix:'0x'});
     console.log(`txnId: ${txnId}`);
+
+    let inputPayload = event['body'];
+    if (inputPayload == undefined) {
+        inputPayload = '{}';
+    }
     
     let params = {
-        Body: event['body'],
+        Body: inputPayload,
         Key: txnId,
         ServerSideEncryption: "AES256",
         Bucket: process.env.BUCKET_NAME
