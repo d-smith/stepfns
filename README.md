@@ -2,7 +2,7 @@
 
 1. simpleflow - the canonical hello world step function sample packaged
 as inline code and step function spec within a cloud formation template. 
-Essentially the example from the amazon doc except with a constrainted 
+Essentially the example from the amazon doc except with a constrained 
 resource on the step function service policy.
 
 2. simplesls - the canonical hello world step function, implemented using
