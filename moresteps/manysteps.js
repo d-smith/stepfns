@@ -2,7 +2,7 @@ const AWS = require('aws-sdk');
 const stepFunctions = new AWS.StepFunctions();
 
 const getFailureProbFromEnvrionment = (step) => {
-    var FailureProb;
+    let failureProb = 0;
 
     switch(step) {
         case 'a':

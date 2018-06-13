@@ -4,7 +4,7 @@ provider:
   name: aws
   runtime: nodejs8.10
   environment:
-    STEP_A_FAILURE_PROB: 0
+    STEP_A_FAILURE_PROB: 0 # value between 0 and 1, e.g. 0.35
     STEP_C_FAILURE_PROB: 0
     STEP_E1_FAILURE_PROB: 0
     STEP_E2_FAILURE_PROB: 0
