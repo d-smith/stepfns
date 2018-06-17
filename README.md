@@ -12,9 +12,7 @@ into the serverless toolset and workflow.
 3. moresteps - shows the use of a multistep process, including how
 to pass data between steps, and how to instantiate a downstream process.
 
-4. s3-for-process-data - for processes that exceed the data limits for step functions,
-and for processes that need to protect data at rest, data can be stored in s3 buckets
-that can be configured to encrypt data at rest.
+4. s3-for-process-data - Early version of this pattern, which is more fully fleshout out in [this project](https://github.com/d-smith/sfs3)
 
 5. lambda-orchestration - Entry lambda via POST, which calls other lambas to do the work. Allows comparison with step functions in terms of overhead.
 
